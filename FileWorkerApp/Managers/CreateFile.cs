@@ -1,7 +1,6 @@
 ﻿using FileWorkerApp.Managers.Interfaces;
 using FileWorkerApp.Providers;
 using FileWorkerApp.Utils;
-using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using System.Text;
 
 namespace FileWorkerApp.Managers
@@ -23,9 +22,9 @@ namespace FileWorkerApp.Managers
             FileInfo infoFile2;
             Random rnd = new();
 
-            do {
+            do
+            {
 
-                //Thread.Sleep(1000);
                 var millisecond = DateTime.Now.Millisecond;
 
                 foreach (var brand in resultMake.Results.OrderBy(o => Guid.NewGuid()))
@@ -34,7 +33,7 @@ namespace FileWorkerApp.Managers
                     sb.AppendLine($"{brand.Make_ID + millisecond}. {brand.Make_Name} {millisecond}");
                     sb.AppendLine($"{brand.Make_ID + millisecond}. {brand.Make_Name} {millisecond}");
                     sb.AppendLine($"{brand.Make_ID + (millisecond * 2)}. {brand.Make_Name} {millisecond}");
-                    //sb.AppendLine($"{brand.Make_ID}. {brand.Make_Name} {resultManufacturer.Results[rnd.Next(resultManufacturer.Results.Count -1)]}");
+                    sb.AppendLine($"{brand.Make_ID}. {brand.Make_Name} {resultManufacturer.Results[rnd.Next(resultManufacturer.Results.Count - 1)]}");
                 }
 
                 foreach (var manuf in resultManufacturer.Results.OrderBy(o => Guid.NewGuid()))
@@ -43,18 +42,12 @@ namespace FileWorkerApp.Managers
                     sb.AppendLine($"{manuf.Mfr_ID + millisecond}. {manuf.Mfr_Name} {millisecond}");
                     sb.AppendLine($"{manuf.Mfr_ID + millisecond}. {manuf.Mfr_Name} {millisecond}");
                     sb.AppendLine($"{manuf.Mfr_ID + (millisecond * 2)}. {manuf.Mfr_Name} {millisecond}");
-                    //sb.AppendLine($"{manuf.Mfr_ID}. {manuf.Mfr_Name} {resultMake.Results[rnd.Next(resultMake.Results.Count - 1)]}");
+                    sb.AppendLine($"{manuf.Mfr_ID}. {manuf.Mfr_Name} {resultMake.Results[rnd.Next(resultMake.Results.Count - 1)]}");
                 }
 
-                if (!IsFileInUseGeneric(infoFile))
-                {
-                    Console.WriteLine($"**** File is not blocked *** {DateTime.Now.ToString()}");
-                    Thread.Sleep(2000);
-                    await File.AppendAllTextAsync(pathInputFile, sb.ToString());
-                    sb.Clear();
-                }
-                else
-                    Console.WriteLine($"**** File is blocked *** {DateTime.Now.ToShortTimeString}");
+                await WriteFile(pathInputFile, sb.ToString());
+
+                sb.Clear();
 
                 infoFile2 = new FileInfo(pathInputFile);
 
@@ -64,18 +57,14 @@ namespace FileWorkerApp.Managers
             return false;
         }
 
-
-        public bool IsFileInUseGeneric(FileInfo file)
+        private async Task WriteFile(string filePath, string text)
         {
-            try
+            Console.WriteLine("Async Write File has started");
+            using (StreamWriter streamwriter = new(filePath, true, Encoding.UTF8, 65536))
             {
-                using var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
+                await streamwriter.WriteLineAsync(text.ToString());
             }
-            catch (IOException)
-            {
-                return true;
-            }
-            return false;
+            Console.WriteLine("Async Write File has completed");
         }
     }
 }

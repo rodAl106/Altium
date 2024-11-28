@@ -12,10 +12,35 @@ var sc = new ServiceCollection()
 
 Console.WriteLine("Let's start...");
 
-var managerCreateFile = sc.GetRequiredService<ICreateFile>();
 
-var _ = await managerCreateFile.CreateRandomDataToFile();
+while (true)
+{
 
+    Console.WriteLine("Select Option");
+    Console.WriteLine($"1 - Create File");
+    Console.WriteLine($"2 - Load + Sort + New File Sorted");
+    Console.WriteLine($"3 - Exit");
+    var input = Console.ReadLine();
 
+    if (input.Equals("1"))
+    {
+        Console.WriteLine($"1 ---- Create File -----");
+        var managerCreateFile = sc.GetRequiredService<ICreateFile>();
+        var _ = await managerCreateFile.CreateRandomDataToFile();
+    }
+    else if (input.Equals("2"))
+    {
+        Console.WriteLine($"2 ---- Load + Sort + New File Sorted ----");
+    }
+    else if (input.Equals("3"))
+    {
+        Console.WriteLine("Exit...");
+        break;
+    }
+    else
+    {
+        break;
+    }
+}
 
 Console.ReadLine();
