@@ -11,10 +11,10 @@ var sc = new ServiceCollection()
 
 
 Console.WriteLine("Let's start...");
+var managerSortFile2 = sc.GetRequiredService<ISortFile>();
+var value = await managerSortFile2.LoadAndSortFile();
 
-
-while (true)
-{
+while (true) {
 
     Console.WriteLine("Select Option");
     Console.WriteLine($"1 - Create File");
@@ -31,15 +31,16 @@ while (true)
     else if (input.Equals("2"))
     {
         Console.WriteLine($"2 ---- Load + Sort + New File Sorted ----");
+        var managerSortFile = sc.GetRequiredService<ISortFile>();
+        var _ = await managerSortFile.LoadAndSortFile();
     }
     else if (input.Equals("3"))
     {
         Console.WriteLine("Exit...");
         break;
     }
-    else
-    {
-        break;
+    else {
+        break;    
     }
 }
 
