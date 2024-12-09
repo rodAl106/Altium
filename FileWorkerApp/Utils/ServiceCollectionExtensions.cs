@@ -1,6 +1,9 @@
 ﻿using FileWorkerApp.Managers;
 using FileWorkerApp.Managers.Interfaces;
+using FileWorkerApp.Models.DB;
 using FileWorkerApp.Providers;
+using FileWorkerApp.Providers.Interfaces;
+using FileWorkerApp.Repository;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
 using System.Diagnostics.CodeAnalysis;
@@ -10,18 +13,20 @@ namespace FileWorkerApp.Utils
     [ExcludeFromCodeCoverage]
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddServices(this IServiceCollection serviceCollection) {
+        public static IServiceCollection AddServices(this IServiceCollection serviceCollection)
+        {
 
             RegisterMangers(serviceCollection);
             RegisterProviders(serviceCollection);
-            RegisterDatabase(serviceCollection);
+            //RegisterDatabase(serviceCollection);
 
             return serviceCollection;
         }
 
-        private static void RegisterMangers(IServiceCollection serviceCollection) {
+        private static void RegisterMangers(IServiceCollection serviceCollection)
+        {
 
-            serviceCollection.AddScoped<ICreateFile, CreateFile>();    
+            serviceCollection.AddScoped<ICreateFile, CreateFile>();
             serviceCollection.AddScoped<ISortFile, SortFile>();
         }
 
@@ -29,14 +34,18 @@ namespace FileWorkerApp.Utils
         {
             serviceCollection
                 .AddRefitClient<ICarsApi>()
-                .ConfigureHttpClient(c => {
-                    c.BaseAddress = new Uri("https://vpic.nhtsa.dot.gov/api");                
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri("https://vpic.nhtsa.dot.gov/api");
                 });
+
+            serviceCollection.AddScoped<IFileProvider, FileProvider>();
         }
 
-        private static void RegisterDatabase(IServiceCollection serviceCollection) {
-
+        private static void RegisterDatabase(IServiceCollection serviceCollection)
+        {
             serviceCollection.AddScoped<DatabaseInMemory>();
+            serviceCollection.AddScoped<IDbRepository<Manufacturer>, ManufacturerRepository>();
         }
     }
 }

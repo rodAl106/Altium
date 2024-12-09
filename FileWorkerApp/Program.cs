@@ -12,10 +12,12 @@ var sc = new ServiceCollection()
 
 Console.WriteLine("Let's start...");
 var managerSortFile2 = sc.GetRequiredService<ISortFile>();
-var value = await managerSortFile2.LoadAndSortFile();
 
-while (true) {
+long chunkSize = 100 * 1024 * 1024; // 100MB chunks
+var value = await managerSortFile2.LoadAndSortFile(chunkSize);
 
+while (true)
+{
     Console.WriteLine("Select Option");
     Console.WriteLine($"1 - Create File");
     Console.WriteLine($"2 - Load + Sort + New File Sorted");
@@ -32,15 +34,17 @@ while (true) {
     {
         Console.WriteLine($"2 ---- Load + Sort + New File Sorted ----");
         var managerSortFile = sc.GetRequiredService<ISortFile>();
-        var _ = await managerSortFile.LoadAndSortFile();
+        //long chunkSize = 100 * 1024 * 1024; // 100MB chunks
+        //var _ = await managerSortFile.LoadAndSortFile(chunkSize);
     }
     else if (input.Equals("3"))
     {
         Console.WriteLine("Exit...");
         break;
     }
-    else {
-        break;    
+    else
+    {
+        break;
     }
 }
 

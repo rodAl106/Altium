@@ -1,67 +1,208 @@
 ﻿using FileWorkerApp.Managers.Interfaces;
-using FileWorkerApp.Models;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.DataAnnotations;
-using Microsoft.OpenApi.Validations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using FileWorkerApp.Providers.Interfaces;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace FileWorkerApp.Managers
 {
     public class SortFile : ISortFile
     {
-        private const string pathInputFile = @"..\..\..\..\input.txt";
+        private readonly IFileProvider _fileProvider;
 
-        public async Task<bool> LoadAndSortFile()
+        public SortFile(IFileProvider fileProvider)
         {
-            var list = new List<Brands>();
+            _fileProvider = fileProvider;
+        }
 
-            using (StreamReader reader = new(pathInputFile))
-            {
-                var buffer = new char[(1024 * 1024)*50].AsSpan();
+        private const string path = @"..\..\..\..\";
+        private const string fileName = "input.txt";
 
-                int numberRead;
-                //var stringBuilder = new StringBuilder();
-                var start = DateTime.Now;
-                Console.WriteLine($"Add to the list {start}");
+        public async Task<bool> LoadAndSortFile(long chunkSize)
+        {
 
-                while ((numberRead = reader.ReadBlock(buffer)) > 0) {
+            string inputFile = $"{path}{fileName}";
+            string tempDir = $"{path}temp_chunks";
+            string outputFile = "sortedfile.txt";
 
-                    //stringBuilder.Append(/*buffer[..numberRead]*/);
+            //Step 1 - Split and sort chunks
+            //Directory.CreateDirectory(tempDir);
+            _fileProvider.CreateDirectory(tempDir);
 
-                    var text = buffer[..numberRead]
-                        .ToString()
-                        .Split("\r\n")
-                        .Select(s => {
-                            var t = s.Split(". ");
-                            if (t.Length == 2)
-                            {   _ = Int32.TryParse(t[0], out int result);
-                                return new Brands
-                                {
-                                    Make_ID = result,
-                                    Make_Name = t[1],
-                                };
-                            }
-                            else
-                                return null;
-                        });
+            //long chunkSize = 100 * 1024 * 1024; // 100MB chunks
+            Console.WriteLine("Splitting and sorting chunks...");
+            var tempFiles = await SplitAndSortChunks(inputFile, tempDir, chunkSize);
 
-                    
-                    list.AddRange(text);
-                    //Console.WriteLine($"Add to the list({list.Count}) {DateTime.Now}");
-                }
-                var end = DateTime.Now;
-                Console.WriteLine($"Add to the list {end} - Total: {(end - start).TotalSeconds}" );
+            //Step 2 - Merge
+            Console.WriteLine("Merging sorted chunks...");
+            MergeSortedChunks(tempFiles, outputFile);
 
-            }
-
-
+            // Cleanup
+            _fileProvider.DeleteDirectory(tempDir, true);
+            Console.WriteLine("Sorting complete! Sorted file: " + outputFile);
 
             return true;
         }
+
+        private async Task<List<string>> SplitAndSortChunks(string inputFile, string tempDir, long chunkSize)
+        {
+
+            List<string> tempFiles = [];
+            List<(int, string)> lines = [];
+
+            long currentSize = 0;
+            int fileCounter = 0;
+
+            var start = DateTime.Now;
+            double totalSeconds = 0;
+            Console.WriteLine($"Start {start}");
+
+            using (StreamReader reader = _fileProvider.Reader(inputFile))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    //Split the line
+                    var values = line.Split(". ");
+                    if (values.Length < 2)
+                        continue;
+
+                    var num = int.Parse(values[0]);
+                    var text = values[1];
+
+                    lines.Add((num, text));
+                    currentSize += line.Length + Environment.NewLine.Length;
+
+                    // When the chunk reaches the specified size, sort and write it
+                    if (currentSize >= chunkSize)
+                    {
+                        string tempFile = await SortAndWriteChunk(lines, tempDir, fileCounter++);
+
+                        if (fileCounter % 10 == 0)
+                        {
+                            var end = DateTime.Now;
+                            totalSeconds = (end - start).TotalMinutes - totalSeconds;
+                            Console.WriteLine($"Time per 1Gb - {totalSeconds}");
+                        }
+
+                        tempFiles.Add(tempFile);
+                        lines.Clear();
+                        currentSize = 0;
+                    }
+                }
+
+                reader.Close();
+                reader.Dispose();
+            }
+
+            return tempFiles;
+        }
+        private async Task<string> SortAndWriteChunk(List<(int number, string text)> lines, string tempDir, int fileCounter)
+        {
+            var sortedList = lines
+                .OrderBy(o => o.text)
+                .ThenBy(o => o.number)
+                ;
+
+            // Write sorted records to a temporary file
+            string tempFile = Path.Combine(tempDir, $"chunk_sorted_{fileCounter}.txt");
+
+            using (StreamWriter streamwriter = _fileProvider.Writer(tempFile, true, Encoding.UTF8, 65536))
+            {
+
+                Console.WriteLine($" -------- Write File Start  ---------{DateTime.Now}");
+
+                foreach (var (number, text) in sortedList)
+                {
+                    await streamwriter.WriteLineAsync($"{number}. {text}");
+                }
+
+                Console.WriteLine($" -------- Write File End   ---------{DateTime.Now}");
+
+            }
+
+            return tempFile;
+        }
+
+        private bool MergeSortedChunks(List<string> tempFiles, string outputFile)
+        {
+
+            var readers = tempFiles
+                .Select(s => _fileProvider.Reader(s, true))
+                .ToList();
+
+            var priorityQueue = new SortedDictionary<string, Queue<(int fileIndex, string line)>>(StringComparer.Ordinal);
+
+            try
+            {
+                // Initialize priority queue with the first line from each file
+                for (int i = 0; i < readers.Count; i++)
+                {
+                    string line = readers[i].ReadLine();
+                    if (line != null)
+                    {
+                        AddToPriorityQueue(priorityQueue, i, line);
+                    }
+                }
+
+                using (StreamWriter writer = _fileProvider.Writer(outputFile, true))
+                {
+                    while (priorityQueue.Count > 0)
+                    {
+                        // Get the smallest element
+                        var smallestEntry = priorityQueue.First();
+                        var (fileIndex, line) = smallestEntry.Value.Dequeue();
+
+                        // Write the smallest element to the output file
+                        writer.WriteLine(line);
+
+                        // Remove the queue if it's empty
+                        if (smallestEntry.Value.Count == 0)
+                        {
+                            priorityQueue.Remove(smallestEntry.Key);
+                        }
+
+                        // Read the next line from the file
+                        string nextLine = readers[fileIndex].ReadLine();
+                        if (nextLine != null)
+                        {
+                            AddToPriorityQueue(priorityQueue, fileIndex, nextLine);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                string t = "";
+            }
+            finally
+            {
+                // Clean up readers
+                foreach (var reader in readers)
+                {
+                    reader.Dispose();
+                }
+            }
+
+            return true;
+        }
+
+        private bool AddToPriorityQueue(SortedDictionary<string, Queue<(int, string)>> priorityQueue, int fileIndex, string line)
+        {
+            // Parse the line to extract the text portion for sorting
+            int separatorIndex = line.IndexOf(". ");
+            if (separatorIndex == -1) return false;
+
+            string text = line.Substring(separatorIndex + 2);
+
+            if (!priorityQueue.ContainsKey(text))
+            {
+                priorityQueue[text] = new Queue<(int, string)>();
+            }
+
+            priorityQueue[text].Enqueue((fileIndex, line));
+
+            return true;
+        }
+
     }
 }
