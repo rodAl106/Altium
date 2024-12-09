@@ -1,6 +1,5 @@
 ﻿using FileWorkerApp.Managers;
 using FileWorkerApp.Managers.Interfaces;
-using FileWorkerApp.Models.DB;
 using FileWorkerApp.Providers;
 using FileWorkerApp.Providers.Interfaces;
 using FileWorkerApp.Repository;
@@ -18,7 +17,6 @@ namespace FileWorkerApp.Utils
 
             RegisterMangers(serviceCollection);
             RegisterProviders(serviceCollection);
-            //RegisterDatabase(serviceCollection);
 
             return serviceCollection;
         }
@@ -40,12 +38,6 @@ namespace FileWorkerApp.Utils
                 });
 
             serviceCollection.AddScoped<IFileProvider, FileProvider>();
-        }
-
-        private static void RegisterDatabase(IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddScoped<DatabaseInMemory>();
-            serviceCollection.AddScoped<IDbRepository<Manufacturer>, ManufacturerRepository>();
         }
     }
 }

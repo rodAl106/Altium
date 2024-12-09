@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
+﻿using System.Text;
 
 namespace FileWorkerApp.Providers.Interfaces
 {
@@ -8,7 +7,7 @@ namespace FileWorkerApp.Providers.Interfaces
         DirectoryInfo CreateDirectory(string path);
 
         bool DeleteDirectory(string path, bool recursive);
-        
+
         StreamReader Reader(string path);
 
         StreamReader Reader(string path, bool detectEncodingFromByteOrderMarks);

@@ -46,7 +46,8 @@ namespace FileWorkerApp.Tests.Managers
 
 
         [Test]
-        public async Task Test1_1() {
+        public async Task Test1_1()
+        {
 
             //Arrange
             long chunkSize = 1024;

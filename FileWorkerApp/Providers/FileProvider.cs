@@ -11,7 +11,8 @@ namespace FileWorkerApp.Providers
 
         public bool DeleteDirectory(string path, bool recursive)
         {
-            if (Directory.Exists(path))  {
+            if (Directory.Exists(path))
+            {
                 Directory.Delete(path, recursive);
                 return true;
             }
