@@ -1,6 +1,6 @@
 # Altium
 ## Prerequisites:
-### * There is a file named "<ins>input.txt</ins>" in the root of the project, where .sln is located
+### * The file named "<ins>input.txt</ins>" must to exist in the root of the project, where .sln is located
 
 ## Notes
 ### * I wasn't able to reach the goal of processing 1GB/Min, but I did the best I could, I tried several different solutions and scenarios, but all without success.
