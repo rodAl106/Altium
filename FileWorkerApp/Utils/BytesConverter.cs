@@ -1,5 +1,8 @@
-﻿namespace FileWorkerApp.Utils
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace FileWorkerApp.Utils
 {
+    [ExcludeFromCodeCoverage]
     public static class BytesConverter
     {
         public static double ConvertBytesToKB(long bytes)

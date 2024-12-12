@@ -1,6 +1,6 @@
-﻿using FileWorkerApp.Managers.Interfaces;
+﻿using System.Text;
+using FileWorkerApp.Managers.Interfaces;
 using FileWorkerApp.Providers.Interfaces;
-using System.Text;
 
 namespace FileWorkerApp.Managers
 {
@@ -8,10 +8,7 @@ namespace FileWorkerApp.Managers
     {
         private readonly IFileProvider _fileProvider;
 
-        public SortFile(IFileProvider fileProvider)
-        {
-            _fileProvider = fileProvider;
-        }
+        public SortFile(IFileProvider fileProvider) => _fileProvider = fileProvider;
 
         private const string path = @"..\..\..\..\";
         private const string fileName = "input.txt";
@@ -44,7 +41,6 @@ namespace FileWorkerApp.Managers
 
         private async Task<List<string>> SplitAndSortChunks(string inputFile, string tempDir, long chunkSize)
         {
-
             List<string> tempFiles = [];
             List<(int, string)> lines = [];
 
@@ -52,7 +48,7 @@ namespace FileWorkerApp.Managers
             int fileCounter = 0;
 
             var start = DateTime.Now;
-            double totalSeconds = 0;
+            double totalMinutes = 0;
             Console.WriteLine($"Start {start}");
 
             using (StreamReader reader = _fileProvider.Reader(inputFile))
@@ -76,38 +72,35 @@ namespace FileWorkerApp.Managers
                     {
                         string tempFile = await SortAndWriteChunk(lines, tempDir, fileCounter++);
 
-                        if (fileCounter % 10 == 0)
-                        {
-                            var end = DateTime.Now;
-                            totalSeconds = (end - start).TotalMinutes - totalSeconds;
-                            Console.WriteLine($"Time per 1Gb - {totalSeconds}");
-                        }
+                        //To check time
+                        //if (fileCounter % 10 == 0)
+                        //{
+                        //    var end = DateTime.Now;
+                        //    totalMinutes = (end - start).TotalMinutes - totalMinutes;
+                        //    Console.WriteLine($"Time per 1Gb - {totalMinutes}");
+                        //}
 
                         tempFiles.Add(tempFile);
                         lines.Clear();
                         currentSize = 0;
                     }
                 }
-
-                reader.Close();
-                reader.Dispose();
             }
 
             return tempFiles;
         }
+
         private async Task<string> SortAndWriteChunk(List<(int number, string text)> lines, string tempDir, int fileCounter)
         {
             var sortedList = lines
                 .OrderBy(o => o.text)
-                .ThenBy(o => o.number)
-                ;
+                .ThenBy(o => o.number);
 
             // Write sorted records to a temporary file
             string tempFile = Path.Combine(tempDir, $"chunk_sorted_{fileCounter}.txt");
 
             using (StreamWriter streamwriter = _fileProvider.Writer(tempFile, true, Encoding.UTF8, 65536))
             {
-
                 Console.WriteLine($" -------- Write File Start  ---------{DateTime.Now}");
 
                 foreach (var (number, text) in sortedList)
@@ -117,6 +110,9 @@ namespace FileWorkerApp.Managers
 
                 Console.WriteLine($" -------- Write File End   ---------{DateTime.Now}");
 
+
+                streamwriter.Dispose();
+                streamwriter.Close();
             }
 
             return tempFile;
@@ -169,11 +165,6 @@ namespace FileWorkerApp.Managers
                     }
                 }
             }
-            catch (Exception ex)
-            {
-
-                string t = "";
-            }
             finally
             {
                 // Clean up readers
@@ -189,10 +180,11 @@ namespace FileWorkerApp.Managers
         private bool AddToPriorityQueue(SortedDictionary<string, Queue<(int, string)>> priorityQueue, int fileIndex, string line)
         {
             // Parse the line to extract the text portion for sorting
-            int separatorIndex = line.IndexOf(". ");
-            if (separatorIndex == -1) return false;
+            var values = line.Split(". ");
+            if (values.Length < 2)
+                return false;
 
-            string text = line.Substring(separatorIndex + 2);
+            string text = values[1];
 
             if (!priorityQueue.ContainsKey(text))
             {

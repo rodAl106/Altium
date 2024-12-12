@@ -1,6 +1,6 @@
-﻿using FileWorkerApp.Providers.Interfaces;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using FileWorkerApp.Providers.Interfaces;
 
 namespace FileWorkerApp.Providers
 {

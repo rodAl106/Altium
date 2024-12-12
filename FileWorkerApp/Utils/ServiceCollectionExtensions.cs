@@ -1,11 +1,10 @@
-﻿using FileWorkerApp.Managers;
+﻿using System.Diagnostics.CodeAnalysis;
+using FileWorkerApp.Managers;
 using FileWorkerApp.Managers.Interfaces;
 using FileWorkerApp.Providers;
 using FileWorkerApp.Providers.Interfaces;
-using FileWorkerApp.Repository;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
-using System.Diagnostics.CodeAnalysis;
 
 namespace FileWorkerApp.Utils
 {

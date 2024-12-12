@@ -1,11 +1,13 @@
 ﻿
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using FileWorkerApp.Managers.Interfaces;
 using FileWorkerApp.Providers;
 using FileWorkerApp.Utils;
-using System.Text;
 
 namespace FileWorkerApp.Managers
 {
+    [ExcludeFromCodeCoverage]
     public class CreateFile : ICreateFile
     {
         private readonly ICarsApi _carsApi;

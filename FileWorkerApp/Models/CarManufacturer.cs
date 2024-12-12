@@ -1,7 +1,9 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 
 namespace FileWorkerApp.Models
 {
+    [ExcludeFromCodeCoverage]
     public class CarManufacturer
     {
         public int Count { get; set; }
@@ -10,7 +12,7 @@ namespace FileWorkerApp.Models
 
         public List<Manufacturer> Results { get; set; }
     }
-
+    [ExcludeFromCodeCoverage]
     public class Manufacturer
     {
         public int Mfr_ID { get; set; }

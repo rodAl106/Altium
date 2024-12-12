@@ -3,3 +3,7 @@
 FileWorkerApp/obj/
 .vs/
 /input.txt
+*.txt
+FileWorkerApp.Tests/obj/FileWorkerApp.Tests.csproj.nuget.g.targets
+FileWorkerApp.Tests/obj/
+FileWorkerApp.Tests/bin/
