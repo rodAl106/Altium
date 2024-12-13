@@ -15,13 +15,11 @@ namespace FileWorkerApp.Managers
 
         public async Task<bool> LoadAndSortFile(long chunkSize)
         {
-
             string inputFile = $"{path}{fileName}";
             string tempDir = $"{path}temp_chunks";
             string outputFile = "sortedfile.txt";
 
             //Step 1 - Split and sort chunks
-            //Directory.CreateDirectory(tempDir);
             _fileProvider.CreateDirectory(tempDir);
 
             //long chunkSize = 100 * 1024 * 1024; // 100MB chunks
@@ -101,15 +99,10 @@ namespace FileWorkerApp.Managers
 
             using (StreamWriter streamwriter = _fileProvider.Writer(tempFile, true, Encoding.UTF8, 65536))
             {
-                Console.WriteLine($" -------- Write File Start  ---------{DateTime.Now}");
-
                 foreach (var (number, text) in sortedList)
                 {
                     await streamwriter.WriteLineAsync($"{number}. {text}");
                 }
-
-                Console.WriteLine($" -------- Write File End   ---------{DateTime.Now}");
-
 
                 streamwriter.Dispose();
                 streamwriter.Close();
@@ -120,7 +113,6 @@ namespace FileWorkerApp.Managers
 
         private bool MergeSortedChunks(List<string> tempFiles, string outputFile)
         {
-
             var readers = tempFiles
                 .Select(s => _fileProvider.Reader(s, true))
                 .ToList();

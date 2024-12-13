@@ -99,7 +99,7 @@ namespace FileWorkerApp.Tests.Managers
             //Validate if outputFile is sorted
             var listOutputFile = new List<(int, string)>();
             
-            //Get data frim sorted file
+            //Get data from sorted file
             using (StreamReader sr = new(_outputFile))
             {
                 string line;

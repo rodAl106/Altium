@@ -9,12 +9,7 @@ var sc = new ServiceCollection()
     .AddServices()
     .BuildServiceProvider();
 
-
 Console.WriteLine("Let's start...");
-var managerSortFile2 = sc.GetRequiredService<ISortFile>();
-
-long chunkSize = 100 * 1024 * 1024; // 100MB chunks
-var value = await managerSortFile2.LoadAndSortFile(chunkSize);
 
 while (true)
 {
@@ -34,8 +29,8 @@ while (true)
     {
         Console.WriteLine($"2 ---- Load + Sort + New File Sorted ----");
         var managerSortFile = sc.GetRequiredService<ISortFile>();
-        //long chunkSize = 100 * 1024 * 1024; // 100MB chunks
-        //var _ = await managerSortFile.LoadAndSortFile(chunkSize);
+        long chunkSize = 100 * 1024 * 1024; // 100MB chunks
+        var _ = await managerSortFile.LoadAndSortFile(chunkSize);
     }
     else if (input.Equals("3"))
     {
